@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="error" name="MyApp" packages="">
+
+    <properties>
+        <property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5.5p | %-10.10t | %-20.20C:%-5.5L | %msg%n</property>
+    </properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <RollingFile name="app-log"
+                     fileName="logs/${main:0}"
+                     filePattern="logs/$${date:yyyy-MM}/${main:0}-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout>
+                <Pattern>${pattern}</Pattern>
+            </PatternLayout>
+
+            <Policies>
+                <!-- Rotated everyday -->
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+
+            <DefaultRolloverStrategy>
+                <Delete basePath="logs" maxDepth="2">
+                    <IfFileName glob="*/*.log"/>
+                    <IfLastModified age="3d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+    </Appenders>
+    <Loggers>
+        <Logger name="rest.bef" level="debug"/>
+
+        <Root level="info">
+            <AppenderRef ref="app-log"/>
+        </Root>
+    </Loggers>
+</Configuration>
