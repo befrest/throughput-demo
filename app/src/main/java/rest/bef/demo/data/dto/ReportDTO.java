@@ -6,6 +6,15 @@ public class ReportDTO {
     private Double avg;
     private Double stdd;
 
+    public ReportDTO() {
+    }
+
+    public ReportDTO(Double sum, Double avg, Double stdd) {
+        this.sum = sum;
+        this.avg = avg;
+        this.stdd = stdd;
+    }
+
     public Double getSum() {
         return sum;
     }

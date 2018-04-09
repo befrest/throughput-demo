@@ -20,7 +20,6 @@ import spark.Response;
 import spark.Spark;
 
 import java.security.Security;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +62,7 @@ public class API {
             String text = req.body();
             PublishDTO dto = BefrestServiceHelper.publish(text);
             if (dto != null)
-                return new AckDTO<>(Constants.System.OKAY, "publish successful", dto);
+                return new AckDTO<>(Constants.System.OKAY, "published", dto);
 
             return new AckDTO<>(Constants.System.GENERAL_ERROR);
         }, transformer);
@@ -71,7 +70,7 @@ public class API {
         get("/api/channel/stat", (req, res) -> {
             StatDTO dto = BefrestServiceHelper.channelStatus();
             if (dto != null)
-                return new AckDTO<>(Constants.System.OKAY, "stat fetched successfully", dto);
+                return new AckDTO<>(Constants.System.OKAY, "stat fetched", dto);
 
             return new AckDTO<>(Constants.System.GENERAL_ERROR);
         }, transformer);
@@ -80,6 +79,10 @@ public class API {
             Jedis jedis = JedisSession.get();
 
             List<String> dlvTokens = jedis.lrange("demo", 0, Integer.MAX_VALUE);
+
+            if (dlvTokens == null || dlvTokens.isEmpty())
+                return new AckDTO<>(Constants.System.OKAY, "report generated", new ReportDTO(0.0, 0.0, 0.0));
+
             double sum = 0, stdd = 0, avg;
 
             for (String dlvToken : dlvTokens) sum += Integer.parseInt(dlvToken);
@@ -88,12 +91,7 @@ public class API {
 
             for (String dlvToken : dlvTokens) stdd += Math.pow(Integer.parseInt(dlvToken) - avg, 2);
 
-            ReportDTO dto = new ReportDTO();
-            dto.setAvg(avg);
-            dto.setSum(sum);
-            dto.setStdd(stdd);
-
-            return new AckDTO<>(Constants.System.OKAY, "report generated successfully", dto);
+            return new AckDTO<>(Constants.System.OKAY, "report generated", new ReportDTO(sum, avg, stdd));
         }, transformer);
 
         exception(Exception.class, (e, req, res) -> {
