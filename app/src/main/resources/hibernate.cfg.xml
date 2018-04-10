@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+
+        <property name="connection.url">jdbc:postgresql://127.0.0.1:5432/postgres</property>
+        <property name="connection.username">postgres</property>
+        <property name="connection.password">aguilepostgres</property>
+        <property name="connection.driver_class">org.postgresql.Driver</property>
+        <property name="dialect">org.hibernate.dialect.PostgreSQL94Dialect</property>
+
+        <property name="hibernate.hbm2ddl.auto">update</property>
+        <property name="current_session_context_class">thread</property>
+        <property name="hibernate.jdbc.lob.non_contextual_creation">true</property>
+
+        <property name="hibernate.show_sql">false</property>
+        <property name="hibernate.use_sql_comments">true</property>
+
+        <property name="hibernate.use_outer_join">false</property>
+        <property name="hibernate.generate_statistics">false</property>
+        <property name="hibernate.jdbc.fetch_size">20</property>
+        <property name="hibernate.jdbc.batch_size">50</property>
+
+        <!-- <property name="hibernate.cache.region.factory_class">
+             org.hibernate.cache.redis.hibernate52.SingletonRedisRegionFactory
+         </property>
+ -->
+        <property name="hibernate.cache.region.factory_class">
+            org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory
+        </property>
+        <property name="hibernate.cache.provider_configuration_file_resource_path">ehcache.xml</property>
+
+        <property name="hibernate.cache.use_second_level_cache">true</property>
+        <property name="hibernate.cache.use_query_cache">true</property>
+        <property name="hibernate.cache.use_structured_entries">true</property>
+        <property name="hibernate.cache.region_prefix">hibernate</property>
+        <property name="connection.provider_class">org.hibernate.c3p0.internal.C3P0ConnectionProvider</property>
+
+        <mapping package="ir.oddrun.bot.model.entity"/>
+
+    </session-factory>
+</hibernate-configuration>
