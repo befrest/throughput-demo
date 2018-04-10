@@ -1,6 +1,5 @@
 package rest.bef.demo;
 
-import com.google.gson.Gson;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.lookup.MainMapLookup;
@@ -35,7 +34,6 @@ public class API {
     }
 
     private static Logger LOGGER;
-    private static Gson MAPPER = new Gson();
 
     public static void main(String[] args) throws Exception {
 
@@ -58,19 +56,21 @@ public class API {
 
         JsonTransformer transformer = new JsonTransformer();
 
-        post("/api/channel/:chid/publish", (req, res) -> {
+        post("/api/channel/:channelId/publish", (req, res) -> {
 
+            String channelId = req.params(":channelId");
             String text = req.body();
-            PublishDTO dto = BefrestService.publish(text);
+            PublishDTO dto = BefrestService.publish(channelId, text);
             if (dto != null)
                 return new AckDTO<>(Constants.System.OKAY, "published", dto);
 
             return new AckDTO<>(Constants.System.GENERAL_ERROR);
         }, transformer);
 
-        get("/api/channel/:chid/stat", (req, res) -> {
+        get("/api/channel/:channelId/stat", (req, res) -> {
 
-            StatDTO dto = BefrestService.channelStatus();
+            String channelId = req.params(":channelId");
+            StatDTO dto = BefrestService.channelStatus(channelId);
             if (dto != null)
                 return new AckDTO<>(Constants.System.OKAY, "stat fetched", dto);
 
@@ -79,6 +79,7 @@ public class API {
 
         get("/api/channel/:channelId/auth/sub", (req, res) -> {
             String channelId = req.params(":channelId");
+
             return new AckDTO<>(Constants.System.OKAY, BefrestService.generateSubscriptionAuth(channelId));
         }, transformer);
 
