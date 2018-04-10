@@ -86,7 +86,8 @@ class DemoThroughput:
         processes = []
         payload = self.endpoint_subscribe % (self.api_ver, self.uid, self.chid, self.sdk_ver)
         auth = self.generate_auth_token(payload)
-        cpu_count = multiprocessing.cpu_count()
+#        cpu_count = multiprocessing.cpu_count()
+	cpu_count = 100
         process_threads = int(self.subscribers / cpu_count)
 
         for _ in range(cpu_count):
