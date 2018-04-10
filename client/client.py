@@ -1,6 +1,9 @@
+#!/usr/bin/python
+
 import base64
 import hashlib
 import json
+import multiprocessing
 import os
 import socket
 import sys
@@ -69,17 +72,28 @@ class DemoThroughput:
 
             self.subscription(auth, payload)
 
-    def ignite_subscriber_threads(self):
+    def thread_handler(self, auth, payload, thread_count):
         threads = []
-        payload = self.endpoint_subscribe % (self.api_ver, self.uid, self.chid, self.sdk_ver)
-        auth = self.generate_auth_token(payload)
 
-        for i in range(self.subscribers):
+        for i in range(thread_count):
             threads.append(threading.Thread(
                 name='sub.%d' % i, target=self.subscription, args={auth, payload}))
 
         [t.start() for t in threads]
         [t.join() for t in threads]
+
+    def ignite_subscriber_threads(self):
+        processes = []
+        payload = self.endpoint_subscribe % (self.api_ver, self.uid, self.chid, self.sdk_ver)
+        auth = self.generate_auth_token(payload)
+        cpu_count = multiprocessing.cpu_count()
+        process_threads = int(self.subscribers / cpu_count)
+
+        for _ in range(cpu_count):
+            processes.append(multiprocessing.Process(target=self.thread_handler, args={auth, payload, process_threads}))
+
+        [p.start() for p in processes]
+        [p.join() for p in processes]
 
     def log(self, msg):
         print('%d\t%s' % (self.timestamp(), msg))
