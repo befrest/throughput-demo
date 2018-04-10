@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.lookup.MainMapLookup;
-import redis.clients.jedis.Jedis;
 import rest.bef.demo.data.Constants;
 import rest.bef.demo.data.JsonTransformer;
 import rest.bef.demo.data.dto.*;
@@ -21,7 +20,6 @@ import spark.Response;
 import spark.Spark;
 
 import java.security.Security;
-import java.util.List;
 import java.util.Map;
 
 import static spark.Spark.*;
