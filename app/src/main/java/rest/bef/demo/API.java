@@ -1,20 +1,21 @@
 package rest.bef.demo;
 
+import com.google.gson.Gson;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.lookup.MainMapLookup;
 import redis.clients.jedis.Jedis;
 import rest.bef.demo.data.Constants;
 import rest.bef.demo.data.JsonTransformer;
-import rest.bef.demo.data.dto.AckDTO;
-import rest.bef.demo.data.dto.PublishDTO;
-import rest.bef.demo.data.dto.ReportDTO;
-import rest.bef.demo.data.dto.StatDTO;
+import rest.bef.demo.data.dto.*;
 import rest.bef.demo.data.hibernate.HibernateUtil;
 import rest.bef.demo.data.redis.JedisSession;
-import rest.bef.demo.model.service.BefrestServiceHelper;
+import rest.bef.demo.model.job.BurstPublishJob;
+import rest.bef.demo.model.job.JobThreadPool;
+import rest.bef.demo.model.service.BefrestService;
 import rest.bef.demo.util.ConfigUtil;
 import rest.bef.demo.util.PidUtil;
+import rest.bef.demo.util.StringUtil;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
@@ -36,6 +37,7 @@ public class API {
     }
 
     private static Logger LOGGER;
+    private static Gson MAPPER = new Gson();
 
     public static void main(String[] args) throws Exception {
 
@@ -58,40 +60,56 @@ public class API {
 
         JsonTransformer transformer = new JsonTransformer();
 
-        post("/api/channel/publish", (req, res) -> {
+        post("/api/channel/:chid/publish", (req, res) -> {
+
             String text = req.body();
-            PublishDTO dto = BefrestServiceHelper.publish(text);
+            PublishDTO dto = BefrestService.publish(text);
             if (dto != null)
                 return new AckDTO<>(Constants.System.OKAY, "published", dto);
 
             return new AckDTO<>(Constants.System.GENERAL_ERROR);
         }, transformer);
 
-        get("/api/channel/stat", (req, res) -> {
-            StatDTO dto = BefrestServiceHelper.channelStatus();
+        get("/api/channel/:chid/stat", (req, res) -> {
+
+            StatDTO dto = BefrestService.channelStatus();
             if (dto != null)
                 return new AckDTO<>(Constants.System.OKAY, "stat fetched", dto);
 
             return new AckDTO<>(Constants.System.GENERAL_ERROR);
         }, transformer);
 
-        get("/api/channel/report", (req, res) -> {
-            Jedis jedis = JedisSession.get();
+        get("/api/channel/:channelId/auth/sub", (req, res) -> {
+            String channelId = req.params(":channelId");
+            return new AckDTO<>(Constants.System.OKAY, BefrestService.generateSubscriptionAuth(channelId));
+        }, transformer);
 
-            List<String> dlvTokens = jedis.lrange("demo", 0, Integer.MAX_VALUE);
+        get("/api/message/:messageId/stat", (req, res) -> {
 
-            if (dlvTokens == null || dlvTokens.isEmpty())
-                return new AckDTO<>(Constants.System.OKAY, "report generated", new ReportDTO(0.0, 0.0, 0.0));
+            String messageId = req.params("messageId");
+            if (!StringUtil.isValid(messageId))
+                return new AckDTO<>(Constants.System.GENERAL_ERROR);
 
-            double sum = 0, stdd = 0, avg;
+            MessageDTO dto = BefrestService.messageStatus(messageId);
+            if (dto != null)
+                return new AckDTO<>(Constants.System.OKAY, "stat fetched", dto);
 
-            for (String dlvToken : dlvTokens) sum += Integer.parseInt(dlvToken);
+            return new AckDTO<>(Constants.System.GENERAL_ERROR);
+        }, transformer);
 
-            avg = sum / dlvTokens.size();
+        post("/api/test/start", (req, res) -> {
+            JobThreadPool.getInstance().submit(new BurstPublishJob());
 
-            for (String dlvToken : dlvTokens) stdd += Math.pow(Integer.parseInt(dlvToken) - avg, 2);
+            return new AckDTO<>(Constants.System.GENERAL_ERROR);
+        }, transformer);
 
-            return new AckDTO<>(Constants.System.OKAY, "report generated", new ReportDTO(sum, avg, stdd));
+        get("/api/test/report", (req, res) -> {
+
+            ReportDTO report = BurstPublishJob.getReport();
+            if (report.getAvg() == null || report.getStdd() == null || report.getSum() == null)
+                return new AckDTO<>(Constants.System.GENERAL_ERROR);
+
+            return new AckDTO<>(Constants.System.OKAY, "report fetched", report);
         }, transformer);
 
         exception(Exception.class, (e, req, res) -> {
