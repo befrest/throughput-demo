@@ -177,24 +177,27 @@ public class BefrestService {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
+
+
 
         PublishDTO pub = BefrestService.publish("salam");
-        System.out.println(pub.getChannelId());
-        System.out.println(pub.getMessageId());
+        System.out.println("channelId: " + pub.getChannelId());
+        System.out.println("messageId: " + pub.getMessageId());
+
+        Thread.sleep(10000);
 
         MessageDTO mdto = BefrestService.messageStatus(pub.getMessageId());
-        System.out.println(mdto.getAcks());
-        System.out.println(mdto.getChannel());
-        System.out.println(mdto.getDeliveries());
-        System.out.println(mdto.getLastAckTimestamp());
-        System.out.println(mdto.getPublishDate());
-        System.out.println(mdto.getStatus());
+        System.out.println("message acks: " + mdto.getAcks());
+        System.out.println("message channel: " + mdto.getChannel());
+        System.out.println("message dlvs" + mdto.getDeliveries());
+        System.out.println("message time to deliver: " + (Long.parseLong(mdto.getLastAckTimestamp()) - Long.parseLong(mdto.getPublishDate())));
+        System.out.println("message status: " + mdto.getStatus());
 
         StatDTO demo = BefrestService.channelStatus();
-        System.out.println(demo.getSubscribers());
-        System.out.println(demo.getPublishedMessages());
-        System.out.println(demo.getStoredMessages());
+        System.out.println("channel subscribers: " + demo.getSubscribers());
+        System.out.println("channel published messages: " + demo.getPublishedMessages());
+        System.out.println("channel stored messages: " + demo.getStoredMessages());
     }
 
 }
