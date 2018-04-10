@@ -85,7 +85,7 @@ public class API {
 
         get("/api/message/:messageId/stat", (req, res) -> {
 
-            String messageId = req.params("messageId");
+            String messageId = req.params(":messageId");
             if (!StringUtil.isValid(messageId))
                 return new AckDTO<>(Constants.System.GENERAL_ERROR);
 
