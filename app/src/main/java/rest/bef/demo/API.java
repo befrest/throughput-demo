@@ -138,6 +138,13 @@ public class API {
             logRequest(req, res);
         });
 
+        options("*", (req, res) -> "{}");
+
+        before((req, res) -> {
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "content-type, access-control-allow-headers, access-control-allow-method, x-rs-id, x-rs-token");
+            res.header("Access-Control-Request-Methods", "GET,POST,OPTIONS,PUT,DELETE");
+        });
     }
 
     private static void logRequest(Request req, Response res) {
