@@ -8,7 +8,6 @@ import os
 import socket
 import sys
 import threading
-import time
 
 from websocket import create_connection
 
@@ -22,6 +21,9 @@ class DemoThroughput:
         pid = open('client.pid', 'w')
         pid.write(str(os.getpid()))
         pid.close()
+
+        self.process_count = multiprocessing.cpu_count()
+        self.process_threads = self.subscribers / self.process_count
         self.ignite_subscriber_threads()
 
     uid = '11386'
@@ -72,10 +74,10 @@ class DemoThroughput:
 
             self.subscription(auth, payload)
 
-    def thread_handler(self, auth, payload, thread_count):
+    def thread_handler(self, auth, payload):
         threads = []
 
-        for i in range(thread_count):
+        for i in range(self.process_threads):
             threads.append(threading.Thread(
                 name='sub.%d' % i, target=self.subscription, args={auth, payload}))
 
@@ -86,18 +88,17 @@ class DemoThroughput:
         processes = []
         payload = self.endpoint_subscribe % (self.api_ver, self.uid, self.chid, self.sdk_ver)
         auth = self.generate_auth_token(payload)
-#        cpu_count = multiprocessing.cpu_count()
-	cpu_count = 100
-        process_threads = int(self.subscribers / cpu_count)
 
-        for _ in range(cpu_count):
-            processes.append(multiprocessing.Process(target=self.thread_handler, args={auth, payload, process_threads}))
+        for i in range(self.process_count):
+            processes.append(
+                multiprocessing.Process(name="p.%d" % i, target=self.thread_handler, args={auth, payload}))
 
         [p.start() for p in processes]
         [p.join() for p in processes]
 
-    def log(self, msg):
-        print('%d\t%s' % (self.timestamp(), msg))
+    @staticmethod
+    def log(msg):
+        print(msg)
 
     @staticmethod
     def ack_parse(ws, msg):
@@ -110,10 +111,6 @@ class DemoThroughput:
         except ValueError as _:
             print("Warning could not parse the received message!")
             print("received message is: " + msg)
-
-    @staticmethod
-    def timestamp():
-        return int(round(time.time() * 1000))
 
 
 if __name__ == "__main__":
