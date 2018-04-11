@@ -1,5 +1,8 @@
 .idea
 *.iml
+*.out
+*.err
+*.pid
 web/.idea
 app/.idea
 app/target
