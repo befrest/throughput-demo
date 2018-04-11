@@ -179,13 +179,11 @@ public class BefrestService {
 
     public static void main(String[] args) throws InterruptedException {
 
-
-
         PublishDTO pub = BefrestService.publish("salam");
         System.out.println("channelId: " + pub.getChannelId());
         System.out.println("messageId: " + pub.getMessageId());
 
-        Thread.sleep(10000);
+        Thread.sleep(4000);
 
         MessageDTO mdto = BefrestService.messageStatus(pub.getMessageId());
         System.out.println("message acks: " + mdto.getAcks());
