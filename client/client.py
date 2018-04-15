@@ -24,6 +24,11 @@ class DemoThroughput:
 
         self.process_count = multiprocessing.cpu_count()
         self.process_threads = self.subscribers / self.process_count
+
+        if self.process_threads < 1:
+            self.process_threads = 1
+            self.process_count = 1
+
         self.ignite_subscriber_threads()
 
     uid = '11386'
@@ -79,7 +84,7 @@ class DemoThroughput:
 
         for i in range(self.process_threads):
             threads.append(threading.Thread(
-                name='sub.%d' % i, target=self.subscription, args={auth, payload}))
+                name='sub.%d' % i, target=self.subscription, args=(auth, payload)))
 
         [t.start() for t in threads]
         [t.join() for t in threads]
@@ -91,7 +96,7 @@ class DemoThroughput:
 
         for i in range(self.process_count):
             processes.append(
-                multiprocessing.Process(name="p.%d" % i, target=self.thread_handler, args={auth, payload}))
+                multiprocessing.Process(name="p.%d" % i, target=self.thread_handler, args=(auth, payload)))
 
         [p.start() for p in processes]
         [p.join() for p in processes]
