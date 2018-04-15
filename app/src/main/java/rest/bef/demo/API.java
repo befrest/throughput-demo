@@ -96,8 +96,10 @@ public class API {
             return new AckDTO<>(Constants.System.GENERAL_ERROR);
         }, transformer);
 
-        post("/api/test/start", (req, res) -> {
-            JobThreadPool.getInstance().submit(new BurstPublishJob());
+        post("/api/test/start/:channelsCount/:pubsCount", (req, res) -> {
+            String channelsCount = req.params(":channelsCount");
+            String publishesCount = req.params(":pubsCount");
+            JobThreadPool.getInstance().submit(new BurstPublishJob(Integer.parseInt(channelsCount), Integer.parseInt(publishesCount)));
 
             return new AckDTO<>(Constants.System.GENERAL_ERROR);
         }, transformer);

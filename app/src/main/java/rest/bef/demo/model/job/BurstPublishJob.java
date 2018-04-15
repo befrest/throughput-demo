@@ -17,8 +17,14 @@ public class BurstPublishJob implements Runnable {
     private static final String REDIS_BURST_MSGS = "burst-msgs";
     private static final String REDIS_BURST_STATS = "burst-stats";
     private static final String REDIS_BURST_REPORT = "burst-report";
-    private static String[] clients = {"cli1", "cli2"};
-    private static int PUBLISH_COUNT = 10;
+
+    private int channelsCount;
+    private int publishesCount;
+
+    public BurstPublishJob(int channelsCount, int publishesCount) {
+        this.channelsCount = channelsCount;
+        this.publishesCount = publishesCount;
+    }
 
     @Override
     public void run() {
@@ -26,8 +32,9 @@ public class BurstPublishJob implements Runnable {
         try (Jedis jedis = JedisUtil.getJmJedis()) {
 
             int counter = 0;
-            for (int i = 0; i < PUBLISH_COUNT; i++) {
-                for (String client : clients) {
+            for (int i = 0; i < publishesCount; i++) {
+                for (int j = 1; j <= channelsCount; j++) {
+                    String client = "cli" + j;
                     PublishDTO dto = BefrestService.publish(client, "msg-" + client);
 
                     if (!StringUtil.isValid(dto.getMessageId()))
