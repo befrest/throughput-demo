@@ -34,7 +34,7 @@ public class BurstPublishJob implements Runnable {
             int counter = 0;
             for (int i = 0; i < publishesCount; i++) {
                 for (int j = 1; j <= channelsCount; j++) {
-                    String client = "cli" + j;
+                    String client = "demo" + j;
                     PublishDTO dto = BefrestService.publish(client, "msg-" + client);
 
                     if (!StringUtil.isValid(dto.getMessageId()))
