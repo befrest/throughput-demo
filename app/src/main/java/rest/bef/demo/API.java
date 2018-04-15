@@ -101,7 +101,7 @@ public class API {
             String publishesCount = req.params(":pubsCount");
             JobThreadPool.getInstance().submit(new BurstPublishJob(Integer.parseInt(channelsCount), Integer.parseInt(publishesCount)));
 
-            return new AckDTO<>(Constants.System.GENERAL_ERROR);
+            return new AckDTO<>(Constants.System.OKAY);
         }, transformer);
 
         get("/api/test/report", (req, res) -> {
