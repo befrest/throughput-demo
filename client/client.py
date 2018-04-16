@@ -23,6 +23,7 @@ class DemoThroughput:
 
         if len(sys.argv) > 3 and int(sys.argv[3]) == 0:
             self.process_count = 1
+            self.process_threads = self.subscribers
 
         pid = open('client.pid', 'w')
         pid.write(str(os.getpid()))
@@ -67,9 +68,10 @@ class DemoThroughput:
 
         try:
             ws = create_connection(url, header=headers)
-            ws.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 20)
+            ws.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60)
             ws.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 5)
             ws.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 2)
+            ws.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
             while True:
                 msg = ws.recv()
