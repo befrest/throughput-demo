@@ -9,6 +9,7 @@ import rest.bef.demo.data.redis.JedisUtil;
 import rest.bef.demo.model.service.BefrestService;
 import rest.bef.demo.util.StringUtil;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -95,12 +96,12 @@ public class BurstPublishJob implements Runnable {
 
             publish("generating report ...");
 
-            Map<String, String> stats = jedis.hgetAll(burstStatsKey);
+            List<String> stats = jedis.hvals(burstStatsKey);
             double sum = 0/*, stdd = 0*/, avg;
 
-            for (String dlvToken : stats.values()) sum += Integer.parseInt(dlvToken);
+            for (String dlvToken : stats) sum = sum + Integer.parseInt(dlvToken);
 
-            avg = sum / stats.values().size();
+            avg = sum / stats.size();
 
             jedis.hset(burstReportKey, AVG, avg + "");
             jedis.hset(burstReportKey, SUM, sum + "");

@@ -109,6 +109,7 @@ public class API {
             try {
                 int clientCount = Integer.parseInt(req.params(":cliCount"));
                 ReportDTO report = new ReportDTO(0.0, 0.0, 0.0);
+
                 for (int i = 1; i <= clientCount; i++) {
                     ReportDTO cliReport = new BurstPublishJob("demo" + i).getReport();
 
