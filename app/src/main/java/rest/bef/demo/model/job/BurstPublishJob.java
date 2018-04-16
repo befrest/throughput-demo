@@ -1,5 +1,7 @@
 package rest.bef.demo.model.job;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import redis.clients.jedis.Jedis;
 import rest.bef.demo.data.dto.MessageDTO;
 import rest.bef.demo.data.dto.PublishDTO;
@@ -100,8 +102,10 @@ public class BurstPublishJob implements Runnable {
             List<String> stats = jedis.hvals(burstStatsKey);
             double sum = 0/*, stdd = 0*/, avg;
 
-            for (String dlvToken : stats) sum = sum + Integer.parseInt(dlvToken);
+            for (String dlvToken : stats)
+                sum = sum + Integer.parseInt(dlvToken);
 
+            LogManager.getLogger().info("SUM: {} SIZE:{}", sum, stats.size());
             avg = sum / stats.size();
 
             jedis.hset(burstReportKey, AVG, avg + "");
