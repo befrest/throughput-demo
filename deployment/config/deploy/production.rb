@@ -60,14 +60,35 @@
 #     # password: "please use keys"
 #   }
 
-server '46.101.90.108',
+server '167.99.43.240',
   roles: %w{clients_simulator_node},
   ssh_options: {
     user: 'root',
     keys: %w(/home/mehdi/.ssh/id_rsa)
   }
 
-server '46.101.38.126',
+server '167.99.217.83',
+  roles: %w{clients_simulator_node},
+  ssh_options: {
+    user: 'root',
+    keys: %w(/home/mehdi/.ssh/id_rsa)
+  }
+
+server '167.99.42.145',
+  roles: %w{clients_simulator_node},
+  ssh_options: {
+    user: 'root',
+    keys: %w(/home/mehdi/.ssh/id_rsa)
+  }
+
+server '167.99.217.59',
+  roles: %w{clients_simulator_node},
+  ssh_options: {
+    user: 'root',
+    keys: %w(/home/mehdi/.ssh/id_rsa)
+  }
+
+server '167.99.47.83',
   roles: %w{clients_simulator_node},
   ssh_options: {
     user: 'root',
