@@ -18,12 +18,15 @@ class DemoThroughput:
     def __init__(self):
         self.chid = sys.argv[1]
         self.subscribers = int(sys.argv[2])
+        self.process_count = multiprocessing.cpu_count()
+        self.process_threads = self.subscribers / self.process_count
+
+        if len(sys.argv) > 3 and int(sys.argv[3]) == 0:
+            self.process_count = 1
+
         pid = open('client.pid', 'w')
         pid.write(str(os.getpid()))
         pid.close()
-
-        self.process_count = multiprocessing.cpu_count()
-        self.process_threads = self.subscribers / self.process_count
 
         if self.process_threads < 1:
             self.process_threads = 1
@@ -83,8 +86,7 @@ class DemoThroughput:
         threads = []
 
         for i in range(self.process_threads):
-            threads.append(threading.Thread(
-                name='sub.%d' % i, target=self.subscription, args=(auth, payload)))
+            threads.append(threading.Thread(name='sub.%d' % i, target=self.subscription, args=(auth, payload)))
 
         [t.start() for t in threads]
         [t.join() for t in threads]
@@ -105,8 +107,7 @@ class DemoThroughput:
     def log(msg):
         print(msg)
 
-    @staticmethod
-    def ack_parse(ws, msg):
+    def ack_parse(self, ws, msg):
         try:
             js = json.loads(msg)
 
