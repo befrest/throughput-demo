@@ -57,6 +57,7 @@ public class BurstPublishJob implements Runnable {
             for (int i = 0; i < publishesCount; i++) {
                 String msgBody = clientId + ".msg." + i;
                 PublishDTO dto = BefrestService.publish(clientId, msgBody);
+                sleep(3);
 
                 if (!StringUtil.isValid(dto.getMessageId()))
                     continue;
@@ -122,7 +123,7 @@ public class BurstPublishJob implements Runnable {
     }
 
     private void sleep() {
-        sleep(10000);
+        sleep(5000);
     }
 
     private void sleep(int millis) {
