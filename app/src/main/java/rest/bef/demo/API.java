@@ -6,7 +6,6 @@ import org.apache.logging.log4j.core.lookup.MainMapLookup;
 import rest.bef.demo.data.Constants;
 import rest.bef.demo.data.JsonTransformer;
 import rest.bef.demo.data.dto.*;
-import rest.bef.demo.data.hibernate.HibernateUtil;
 import rest.bef.demo.data.redis.JedisSession;
 import rest.bef.demo.model.job.BurstPublishJob;
 import rest.bef.demo.model.job.JobThreadPool;
@@ -46,7 +45,7 @@ public class API {
         MainMapLookup.setMainArguments(logFile);
         LOGGER = LogManager.getLogger();
 
-        HibernateUtil.getSession();
+//        HibernateUtil.getSession();
 
         PidUtil.register(pidFile);
 
@@ -115,7 +114,7 @@ public class API {
 
         exception(Exception.class, (e, req, res) -> {
 
-            HibernateUtil.closeSession();
+//            HibernateUtil.closeSession();
             JedisSession.closeSession();
 
             AckDTO<String> resp = new AckDTO<>();
@@ -133,7 +132,7 @@ public class API {
         });
 
         after((req, res) -> {
-            HibernateUtil.closeSession();
+//            HibernateUtil.closeSession();
             JedisSession.closeSession();
 
             res.type("application/json");
