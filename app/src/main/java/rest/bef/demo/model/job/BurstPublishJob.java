@@ -96,17 +96,17 @@ public class BurstPublishJob implements Runnable {
             publish("generating report ...");
 
             Map<String, String> stats = jedis.hgetAll(burstStatsKey);
-            double sum = 0, stdd = 0, avg;
+            double sum = 0/*, stdd = 0*/, avg;
 
             for (String dlvToken : stats.values()) sum += Integer.parseInt(dlvToken);
 
             avg = sum / stats.values().size();
 
-            for (String dlvToken : stats.values()) stdd += Math.pow(Integer.parseInt(dlvToken) - avg, 2);
+//            for (String dlvToken : stats.values()) stdd += Math.pow(Integer.parseInt(dlvToken) - avg, 2);
 
             jedis.hset(burstReportKey, AVG, avg + "");
             jedis.hset(burstReportKey, SUM, sum + "");
-            jedis.hset(burstReportKey, STDD, stdd + "");
+//            jedis.hset(burstReportKey, STDD, stdd + "");
 
             publish("all done");
         }
@@ -118,7 +118,7 @@ public class BurstPublishJob implements Runnable {
 
     private void sleep() {
         try {
-            Thread.sleep(3000);
+            Thread.sleep(10000);
         } catch (Exception ignored) {
 
         }
