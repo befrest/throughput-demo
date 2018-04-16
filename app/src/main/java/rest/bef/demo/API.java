@@ -109,6 +109,7 @@ public class API {
             try {
                 int clientCount = Integer.parseInt(req.params(":cliCount"));
                 ReportDTO report = new ReportDTO(0.0, 0.0, 0.0);
+                double avg = 0;
 
                 for (int i = 1; i <= clientCount; i++) {
                     ReportDTO cliReport = new BurstPublishJob("demo" + i).getReport();
@@ -116,10 +117,11 @@ public class API {
                     if (cliReport.getSum() == null)
                         continue;
 
+                    avg += cliReport.getAvg();
                     report.setSum(report.getSum() + cliReport.getSum());
                 }
 
-                report.setAvg(report.getSum() / clientCount);
+                report.setAvg(avg / clientCount);
 
                 return new AckDTO<>(Constants.System.OKAY, "report fetched", report);
             } catch (Exception e){
