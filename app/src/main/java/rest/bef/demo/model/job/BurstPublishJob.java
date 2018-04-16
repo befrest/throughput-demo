@@ -1,5 +1,7 @@
 package rest.bef.demo.model.job;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import redis.clients.jedis.Jedis;
 import rest.bef.demo.data.dto.MessageDTO;
 import rest.bef.demo.data.dto.PublishDTO;
@@ -9,43 +11,68 @@ import rest.bef.demo.data.redis.JedisUtil;
 import rest.bef.demo.model.service.BefrestService;
 import rest.bef.demo.util.StringUtil;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class BurstPublishJob implements Runnable {
 
-    private static final String REDIS_BURST_MSGS = "burst-msgs";
-    private static final String REDIS_BURST_STATS = "burst-stats";
-    private static final String REDIS_BURST_REPORT = "burst-report";
-    private static String[] clients = {"cli1", "cli2"};
-    private static int PUBLISH_COUNT = 10;
+    private static final String AVG = "avg";
+    private static final String SUM = "sum";
+    private static final String STDD = "stdd";
+
+    private int publishesCount;
+    private String clientId;
+
+    private String burstMessagesKey;
+    private String burstStatsKey;
+    private String burstReportKey;
+
+    public BurstPublishJob(String clientId, int publishesCount) {
+        this.publishesCount = publishesCount;
+        this.clientId = clientId;
+
+        this.burstMessagesKey = "burst-msgs-" + clientId;
+        this.burstStatsKey = "burst-stats-" + clientId;
+        this.burstReportKey = "burst-report-" + clientId;
+    }
+
+    public BurstPublishJob(String clientId) {
+        this.burstMessagesKey = "burst-msgs-" + clientId;
+        this.burstStatsKey = "burst-stats-" + clientId;
+        this.burstReportKey = "burst-report-" + clientId;
+    }
 
     @Override
     public void run() {
 
         try (Jedis jedis = JedisUtil.getJmJedis()) {
 
+            jedis.del(burstMessagesKey);
+            jedis.del(burstReportKey);
+            jedis.del(burstStatsKey);
+
             int counter = 0;
-            for (int i = 0; i < PUBLISH_COUNT; i++) {
-                for (String client : clients) {
-                    PublishDTO dto = BefrestService.publish(client, "msg-" + client);
+            for (int i = 0; i < publishesCount; i++) {
+                String msgBody = clientId + ".msg." + i;
+                PublishDTO dto = BefrestService.publish(clientId, msgBody);
+                sleep(3);
 
-                    if (!StringUtil.isValid(dto.getMessageId()))
-                        continue;
+                if (!StringUtil.isValid(dto.getMessageId()))
+                    continue;
 
-                    jedis.zadd(REDIS_BURST_MSGS, System.currentTimeMillis(), dto.getMessageId());
-                    if (++counter % 1000 == 0) {
-                        BefrestService.publish(String.format("%d msgs published", counter));
-                    }
-                }
+                jedis.zadd(burstMessagesKey, System.currentTimeMillis(), dto.getMessageId());
+                if (++counter % 1000 == 0)
+                    publish(String.format("%d msgs published", counter));
             }
 
-            BefrestService.publish("all messages published");
-            BefrestService.publish("start checking messages stats ...");
+            publish("all messages published");
+            publish("start checking messages stats ...");
+
             sleep();
 
             counter = 0;
-            Set<String> members = jedis.zrange(REDIS_BURST_MSGS, 0, Integer.MAX_VALUE);
+            Set<String> members = jedis.zrange(burstMessagesKey, 0, Integer.MAX_VALUE);
             for (String msg : members) {
                 MessageDTO mstatus = BefrestService.messageStatus(msg);
 
@@ -60,51 +87,59 @@ public class BurstPublishJob implements Runnable {
 
                 if (StringUtil.isNumeric(publishDate) && StringUtil.isNumeric(lastAckTimestamp)) {
                     Long dlvTime = Long.parseLong(lastAckTimestamp) - Long.parseLong(publishDate);
-                    jedis.hset(REDIS_BURST_STATS, msg, dlvTime + "");
+                    jedis.hset(burstStatsKey, msg, dlvTime + "");
 
                     if (++counter % 1000 == 0) {
-                        BefrestService.publish(String.format("%d message stats retrieved", counter));
+                        publish(String.format("%d message stats retrieved", counter));
                     }
                 }
             }
 
-            BefrestService.publish("all stats retrieved");
+            publish("all stats retrieved");
 
-            BefrestService.publish("generating report ...");
+            publish("generating report ...");
 
-            Map<String, String> stats = jedis.hgetAll(REDIS_BURST_STATS);
-            double sum = 0, stdd = 0, avg;
+            List<String> stats = jedis.hvals(burstStatsKey);
+            double sum = 0/*, stdd = 0*/, avg;
 
-            for (String dlvToken : stats.values()) sum += Integer.parseInt(dlvToken);
+            for (String dlvToken : stats)
+                sum = sum + Integer.parseInt(dlvToken);
 
-            avg = sum / stats.values().size();
+            LogManager.getLogger().info("SUM: {} SIZE:{}", sum, stats.size());
+            avg = sum / stats.size();
 
-            for (String dlvToken : stats.values()) stdd += Math.pow(Integer.parseInt(dlvToken) - avg, 2);
+            jedis.hset(burstReportKey, AVG, avg + "");
+            jedis.hset(burstReportKey, SUM, sum + "");
 
-            jedis.hset(REDIS_BURST_REPORT, "avg", avg + "");
-            jedis.hset(REDIS_BURST_REPORT, "sum", sum + "");
-            jedis.hset(REDIS_BURST_REPORT, "stdd", stdd + "");
-
-            BefrestService.publish("all done");
+            publish("all done");
         }
     }
 
+    private void publish(String text) {
+        BefrestService.publish(String.format("[%s] %s", clientId, text));
+    }
+
     private void sleep() {
+        sleep(10000);
+    }
+
+    private void sleep(int millis) {
         try {
-            Thread.sleep(5000);
+            Thread.sleep(millis);
         } catch (Exception ignored) {
 
         }
     }
 
-    public static ReportDTO getReport() {
+
+    public ReportDTO getReport() {
 
         Jedis jedis = JedisSession.get();
 
-        Double avg = Double.parseDouble(jedis.hget(REDIS_BURST_REPORT, "avg"));
-        Double sum = Double.parseDouble(jedis.hget(REDIS_BURST_REPORT, "sum"));
-        Double stdd = Double.parseDouble(jedis.hget(REDIS_BURST_REPORT, "stdd"));
+        Double avg = Double.parseDouble(jedis.hget(burstReportKey, AVG));
+        Double sum = Double.parseDouble(jedis.hget(burstReportKey, SUM));
+//        Double stdd = Double.parseDouble(jedis.hget(burstReportKey, STDD));
 
-        return new ReportDTO(sum, avg, stdd);
+        return new ReportDTO(sum, avg, 0.0);
     }
 }

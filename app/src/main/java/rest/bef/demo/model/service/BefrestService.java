@@ -33,6 +33,9 @@ public class BefrestService {
     private static final long UID = 11386;
 
     public static PublishDTO publish(String channel, String text) {
+
+        LOGGER.info("publishing [{}] to [{}]", text, channel);
+
         String auth = BefrestAuth.generatePublishAuth(channel);
 
         Map<String, String> headers = new HashMap<>();

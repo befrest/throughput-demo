@@ -6,7 +6,6 @@ import org.apache.logging.log4j.core.lookup.MainMapLookup;
 import rest.bef.demo.data.Constants;
 import rest.bef.demo.data.JsonTransformer;
 import rest.bef.demo.data.dto.*;
-import rest.bef.demo.data.hibernate.HibernateUtil;
 import rest.bef.demo.data.redis.JedisSession;
 import rest.bef.demo.model.job.BurstPublishJob;
 import rest.bef.demo.model.job.JobThreadPool;
@@ -45,8 +44,6 @@ public class API {
 
         MainMapLookup.setMainArguments(logFile);
         LOGGER = LogManager.getLogger();
-
-        HibernateUtil.getSession();
 
         PidUtil.register(pidFile);
 
@@ -96,24 +93,45 @@ public class API {
             return new AckDTO<>(Constants.System.GENERAL_ERROR);
         }, transformer);
 
-        post("/api/test/start", (req, res) -> {
-            JobThreadPool.getInstance().submit(new BurstPublishJob());
+        post("/api/test/start/:cliCount/:pubsCount", (req, res) -> {
+            String cliCount = req.params(":cliCount");
+            String pubsCount = req.params(":pubsCount");
 
-            return new AckDTO<>(Constants.System.GENERAL_ERROR);
+            for (int i = 1; i <= Integer.parseInt(cliCount); i++) {
+                JobThreadPool.getInstance().submit(new BurstPublishJob("demo" + i, Integer.parseInt(pubsCount)));
+            }
+
+            return new AckDTO<>(Constants.System.OKAY);
         }, transformer);
 
-        get("/api/test/report", (req, res) -> {
+        get("/api/test/report/:cliCount", (req, res) -> {
 
-            ReportDTO report = BurstPublishJob.getReport();
-            if (report.getAvg() == null || report.getStdd() == null || report.getSum() == null)
+            try {
+                int clientCount = Integer.parseInt(req.params(":cliCount"));
+                ReportDTO report = new ReportDTO(0.0, 0.0, 0.0);
+                double avg = 0;
+
+                for (int i = 1; i <= clientCount; i++) {
+                    ReportDTO cliReport = new BurstPublishJob("demo" + i).getReport();
+
+                    if (cliReport.getSum() == null)
+                        continue;
+
+                    avg += cliReport.getAvg();
+                    report.setSum(report.getSum() + cliReport.getSum());
+                }
+
+                report.setAvg(avg / clientCount);
+
+                return new AckDTO<>(Constants.System.OKAY, "report fetched", report);
+            } catch (Exception e){
+                LOGGER.error("", e);
                 return new AckDTO<>(Constants.System.GENERAL_ERROR);
-
-            return new AckDTO<>(Constants.System.OKAY, "report fetched", report);
+            }
         }, transformer);
 
         exception(Exception.class, (e, req, res) -> {
 
-            HibernateUtil.closeSession();
             JedisSession.closeSession();
 
             AckDTO<String> resp = new AckDTO<>();
@@ -131,13 +149,19 @@ public class API {
         });
 
         after((req, res) -> {
-            HibernateUtil.closeSession();
             JedisSession.closeSession();
 
             res.type("application/json");
             logRequest(req, res);
         });
 
+        options("*", (req, res) -> "{}");
+
+        before((req, res) -> {
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "content-type, access-control-allow-headers, access-control-allow-method, x-rs-id, x-rs-token");
+            res.header("Access-Control-Request-Methods", "GET,POST,OPTIONS,PUT,DELETE");
+        });
     }
 
     private static void logRequest(Request req, Response res) {

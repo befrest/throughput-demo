@@ -14,7 +14,7 @@ public class HibernateUtil {
     private static Logger logger = LogManager.getLogger();
     private static SessionFactory sessionFactory;
     private static final ThreadLocal<Session> session = new ThreadLocal<>();
-
+/*
     static {
         try {
             Configuration cfg = new Configuration();
@@ -27,6 +27,7 @@ public class HibernateUtil {
             logger.error(e.getMessage());
         }
     }
+*/
 
     private static Session currentSession() throws HibernateException {
         Session s = session.get();

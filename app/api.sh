@@ -8,4 +8,4 @@ fi
 
 export MAVEN_OPTS='-Xms128m -Xmx2056m -javaagent:newrelic/newrelic.jar'
 
-nohup mvn exec:java -Dexec.mainClass=rest.bef.demo.API -Dexec.args="$1 $2" 1>/dev/null 2>/dev/null &
+nohup mvn exec:java -Dexec.mainClass=rest.bef.demo.API -Dexec.args="$1 $2" 1>$1.$2.out 2>$1.$2.err &
