@@ -102,11 +102,8 @@ public class BurstPublishJob implements Runnable {
 
             avg = sum / stats.values().size();
 
-//            for (String dlvToken : stats.values()) stdd += Math.pow(Integer.parseInt(dlvToken) - avg, 2);
-
             jedis.hset(burstReportKey, AVG, avg + "");
             jedis.hset(burstReportKey, SUM, sum + "");
-//            jedis.hset(burstReportKey, STDD, stdd + "");
 
             publish("all done");
         }
