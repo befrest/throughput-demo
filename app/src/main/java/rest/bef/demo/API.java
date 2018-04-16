@@ -106,20 +106,25 @@ public class API {
 
         get("/api/test/report/:cliCount", (req, res) -> {
 
-            int clientCount = Integer.parseInt(req.params(":cliCount"));
-            ReportDTO report = new ReportDTO(0.0, 0.0, 0.0);
-            for (int i = 1; i <= clientCount; i++) {
-                ReportDTO cliReport = new BurstPublishJob("demo" + i).getReport();
+            try {
+                int clientCount = Integer.parseInt(req.params(":cliCount"));
+                ReportDTO report = new ReportDTO(0.0, 0.0, 0.0);
+                for (int i = 1; i <= clientCount; i++) {
+                    ReportDTO cliReport = new BurstPublishJob("demo" + i).getReport();
 
-                if (cliReport.getAvg() == null || cliReport.getStdd() == null || cliReport.getSum() == null)
-                    continue;
+                    if (cliReport.getAvg() == null || cliReport.getStdd() == null || cliReport.getSum() == null)
+                        continue;
 
-                report.setSum(report.getSum() + cliReport.getSum());
+                    report.setSum(report.getSum() + cliReport.getSum());
+                }
+
+                report.setAvg(report.getSum() / clientCount);
+
+                return new AckDTO<>(Constants.System.OKAY, "report fetched", report);
+            } catch (Exception e){
+                LOGGER.error("", e);
+                return new AckDTO<>(Constants.System.GENERAL_ERROR);
             }
-
-            report.setAvg(report.getSum()/clientCount);
-
-            return new AckDTO<>(Constants.System.OKAY, "report fetched", report);
         }, transformer);
 
         exception(Exception.class, (e, req, res) -> {
