@@ -112,7 +112,7 @@ public class API {
                 for (int i = 1; i <= clientCount; i++) {
                     ReportDTO cliReport = new BurstPublishJob("demo" + i).getReport();
 
-                    if (cliReport.getAvg() == null || cliReport.getStdd() == null || cliReport.getSum() == null)
+                    if (cliReport.getSum() == null)
                         continue;
 
                     report.setSum(report.getSum() + cliReport.getSum());
