@@ -13,6 +13,7 @@ import rest.bef.demo.util.StringUtil;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 public class BurstPublishJob implements Runnable {
@@ -82,8 +83,10 @@ public class BurstPublishJob implements Runnable {
                 String publishDate = mstatus.getPublishDate();
                 String lastAckTimestamp = mstatus.getLastAckTimestamp();
 
-                if (!StringUtil.isValid(lastAckTimestamp))
+                if (!StringUtil.isValid(lastAckTimestamp)) {
+//                    lastAckTimestamp = (Long.parseLong(publishDate) + (new Random().nextInt(10))) + "";
                     lastAckTimestamp = publishDate;
+                }
 
                 if (StringUtil.isNumeric(publishDate) && StringUtil.isNumeric(lastAckTimestamp)) {
                     Long dlvTime = Long.parseLong(lastAckTimestamp) - Long.parseLong(publishDate);
