@@ -104,17 +104,20 @@ var onMessage = function (msg) {
             .removeClass('w3-hide')
             .addClass('w3-show');
 
-        var div = $('<div></div>').text(msg).addClass('w3-margin w3-padding w3-green w3-round-large');
+        var div = $('<div></div>').text(msg).addClass('w3-margin w3-padding w3-amber w3-round-large');
         receivedMessagesContainer.prepend(div);
         var childCount = receivedMessagesContainer.children('div').length;
         var opacityStep = .8 / childCount;
         var childIndex = 0;
 
-        receivedMessagesContainer.children('div').each(function () {
-            $(this).css('opacity', 1 - (childIndex * opacityStep));
+        receivedMessagesContainer.children('div:gt(0)').each(function () {
+            $(this)
+            .removeClass('w3-amber')
+            .addClass('w3-green')
+            .css('opacity', 1 - (childIndex * opacityStep));
             childIndex++;
 
-            if (childIndex > 5)
+            if (childIndex > 6)
                 $(this).remove();
         });
     }
