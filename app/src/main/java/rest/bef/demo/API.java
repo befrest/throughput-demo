@@ -45,8 +45,6 @@ public class API {
         MainMapLookup.setMainArguments(logFile);
         LOGGER = LogManager.getLogger();
 
-//        HibernateUtil.getSession();
-
         PidUtil.register(pidFile);
 
         Integer basePort = ConfigUtil.getInt(processGroup + ".listen.port");
@@ -95,26 +93,38 @@ public class API {
             return new AckDTO<>(Constants.System.GENERAL_ERROR);
         }, transformer);
 
-        post("/api/test/start/:channelsCount/:pubsCount", (req, res) -> {
-            String channelsCount = req.params(":channelsCount");
-            String publishesCount = req.params(":pubsCount");
-            JobThreadPool.getInstance().submit(new BurstPublishJob(Integer.parseInt(channelsCount), Integer.parseInt(publishesCount)));
+        post("/api/test/start/:cliCount/:pubsCount", (req, res) -> {
+            String cliCount = req.params(":cliCount");
+            String pubsCount = req.params(":pubsCount");
+
+            for (int i = 1; i <= Integer.parseInt(cliCount); i++) {
+                JobThreadPool.getInstance().submit(new BurstPublishJob("demo" + i, Integer.parseInt(pubsCount)));
+            }
 
             return new AckDTO<>(Constants.System.OKAY);
         }, transformer);
 
-        get("/api/test/report", (req, res) -> {
+        get("/api/test/report/:cliCount", (req, res) -> {
 
-            ReportDTO report = BurstPublishJob.getReport();
-            if (report.getAvg() == null || report.getStdd() == null || report.getSum() == null)
-                return new AckDTO<>(Constants.System.GENERAL_ERROR);
+            int clientId = Integer.parseInt(req.params(":cliCount"));
+            ReportDTO report = new ReportDTO(0.0, 0.0, 0.0);
+            for (int i = 1; i <= clientId; i++) {
+                ReportDTO cliReport = new BurstPublishJob("demo" + i).getReport();
+
+                if (cliReport.getAvg() == null || cliReport.getStdd() == null || cliReport.getSum() == null)
+                    continue;
+
+                report.setSum(report.getSum() + cliReport.getSum());
+                report.setAvg(cliReport.getAvg());
+                report.setStdd(cliReport.getStdd());
+            }
+
 
             return new AckDTO<>(Constants.System.OKAY, "report fetched", report);
         }, transformer);
 
         exception(Exception.class, (e, req, res) -> {
 
-//            HibernateUtil.closeSession();
             JedisSession.closeSession();
 
             AckDTO<String> resp = new AckDTO<>();
@@ -132,7 +142,6 @@ public class API {
         });
 
         after((req, res) -> {
-//            HibernateUtil.closeSession();
             JedisSession.closeSession();
 
             res.type("application/json");
