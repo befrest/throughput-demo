@@ -127,8 +127,8 @@ public class BurstPublishJob implements Runnable {
 
         Double avg = Double.parseDouble(jedis.hget(burstReportKey, AVG));
         Double sum = Double.parseDouble(jedis.hget(burstReportKey, SUM));
-        Double stdd = Double.parseDouble(jedis.hget(burstReportKey, STDD));
+//        Double stdd = Double.parseDouble(jedis.hget(burstReportKey, STDD));
 
-        return new ReportDTO(sum, avg, stdd);
+        return new ReportDTO(sum, avg, 0.0);
     }
 }
