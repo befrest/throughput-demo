@@ -4,23 +4,82 @@
     <meta charset="UTF-8">
     <title>Befrest Throughput Demo</title>
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js"
+            integrity="sha384-8iPTk2s/jMVj81dnzb/iFR2sdA7u06vHJyyLlAd4snFpCl/SnyUjRrbdJsw1pGIl"
+            crossorigin="anonymous"></script>
     <link rel="stylesheet" href="w3.css">
     <link rel="stylesheet" href="main.css">
 </head>
-<body>
+<body class="w3-light-gray">
 
-<div class="w3-panel w3-sand">
-    <header class="w3-indigo w3-round">
-        <h3 class="w3-text-sand w3-margin">Subscribers</h3>
-    </header>
+<div class="w3-padding-16">
+
+    <div style="height: 50px;"></div>
+
     <div class="w3-container">
-        <button class="w3-button w3-blue-gray w3-hover-purple w3-round" id="subBtn" onclick="return subscribe()">
-            Start subscribing</button>
+        <div class="w3-quarter">&nbsp;</div>
 
+        <div class="w3-half w3-center w3-teal w3-padding-48 w3-round-xxlarge">
+            <h1 class="w3-xxxlarge"><b>1</b> Channel, <b>THOUSANDS</b> of Subscribers</h1>
+            <button class="w3-button w3-xxlarge w3-round-large w3-white w3-hover-amber"
+                    onclick="openPublishModal()">Start</button>
+
+            <div class="vspace-32"></div>
+
+            <div class="w3-panel">
+                <table class="w3-table w3-bordered w3-border">
+                    <tr class="w3-white" style="font-size: 1.2em">
+                        <td class="w3-third">Subscribers</td>
+
+                        <td class="w3-third w3-tooltip">
+                            Time (millisecond) &nbsp; <i class="far fa-question-circle w3-large"></i>
+                            <span style="position:relative; left:0; top:18px"
+                                  class="w3-text w3-tag w3-round w3-green">Last received ack - Publish time</span>
+                        </td>
+
+                        <td class="w3-third">Number of received ACKS</td>
+                    </tr>
+
+                    <tr class="w3-light-gray" style="font-size: 1.2em;">
+                        <td class="w3-third" id="phase100kSubscribers"></td>
+                        <td class="w3-third" id="phase100kTime"></td>
+                        <td class="w3-third" id="phase100kAcks"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="w3-quarter">&nbsp;</div>
+    </div>
+
+    <div class="vspace-24"></div>
+
+    <div class="w3-margin w3-hide">
+        <div id="receivedMessages" class="w3-padding w3-round-xlarge"></div>
     </div>
 </div>
 
+<div id="publishModal" class="w3-modal">
+    <div class="w3-modal-content w3-animate-zoom w3-card-4">
+        <header class="w3-container w3-green">
+            <span onclick="closePublishModal()" class="w3-button w3-display-topright w3-xlarge">&times;</span>
+            <h2>PUBLISH</h2>
+        </header>
+        <div class="w3-container">
+            <div class="vspace-24"></div>
+            <label for="message">Message:</label>
+            <textarea type="text" name="message" id="message" class="w3-input" style="width: 100%;"
+                      placeholder="Text to be published"></textarea>
+            <div class="vspace-24"></div>
+            <button class="w3-button w3-amber w3-hover-orange" onclick="publish()">Publish & Start</button>
+            <div class="vspace-24"></div>
+        </div>
+    </div>
+</div>
+
+<script language="javascript" type="text/javascript" src="https://bef.rest/sdk/web/befrest.min.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
+
 </body>
 </html>

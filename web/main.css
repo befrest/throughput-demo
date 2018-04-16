@@ -1,3 +1,15 @@
 * {
     font-family: 'Lato', sans-serif !important;
 }
+
+.vspace-24 {
+    height: 24px;
+}
+
+.vspace-32 {
+    height: 32px;
+}
+
+.vspace-48 {
+    height: 48px;
+}
