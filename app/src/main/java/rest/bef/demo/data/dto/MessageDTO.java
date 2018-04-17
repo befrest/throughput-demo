@@ -50,16 +50,7 @@ public class MessageDTO {
     }
 
     public String getLastAckTimestamp() {
-
-        double end = Long.parseLong(lastAckTimestamp);
-        double start = Long.parseLong(publishDate);
-
-        if (end - start < 300)
-            return lastAckTimestamp;
-        else {
-            double bias = (end - start) / 10000 * 200 + 300;
-            return  (start + bias) + "";
-        }
+        return lastAckTimestamp;
     }
 
     public void setLastAckTimestamp(String lastAckTimestamp) {
