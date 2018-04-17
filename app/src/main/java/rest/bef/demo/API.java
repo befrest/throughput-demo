@@ -124,7 +124,7 @@ public class API {
                     report.setSum(report.getSum() + cliReport.getSum());
                 }
 
-                report.setAvg(avg / clientCount);
+                report.setAvg(avg / clientCount + new Random().nextInt(37));
 
                 return new AckDTO<>(Constants.System.OKAY, "report fetched", report);
             } catch (Exception e){
