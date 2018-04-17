@@ -90,16 +90,6 @@ public class API {
             MessageDTO dto = BefrestService.messageStatus(messageId);
 
             if (dto != null) {
-                double end = Long.parseLong(dto.getLastAckTimestamp());
-                double start = Long.parseLong(dto.getPublishDate());
-
-                if (end - start > 300) {
-                    double bias = (end - start) / 10000 * 200 + new Random().nextInt(57) + 243;
-                    double b = start + bias;
-
-                    dto.setLastAckTimestamp(String.format("%.0f", b));
-                }
-
                 return new AckDTO<>(Constants.System.OKAY, "stat fetched", dto);
             }
 

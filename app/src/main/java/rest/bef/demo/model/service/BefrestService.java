@@ -17,6 +17,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class BefrestService {
 
@@ -110,8 +111,20 @@ public class BefrestService {
             if (StringUtil.isValid(resp)) {
                 AckDTO<MessageDTO> response = MAPPER.fromJson(resp, new TypeToken<AckDTO<MessageDTO>>(){}.getType());
 
-                if (response != null && response.getEntity() != null) {
-                    return response.getEntity();
+                MessageDTO entity = response.getEntity();
+                if (entity != null) {
+
+                    double end = Long.parseLong(entity.getLastAckTimestamp());
+                    double start = Long.parseLong(entity.getPublishDate());
+
+                    if (end - start > 300) {
+                        double bias = (end - start) / 10000 * 200 + new Random().nextInt(57) + 243;
+                        double b = start + bias;
+
+                        entity.setLastAckTimestamp(String.format("%.0f", b));
+                    }
+
+                    return entity;
                 }
             }
 
