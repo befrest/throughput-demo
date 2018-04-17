@@ -19,6 +19,7 @@ import spark.Spark;
 
 import java.security.Security;
 import java.util.Map;
+import java.util.Random;
 
 import static spark.Spark.*;
 
@@ -93,7 +94,7 @@ public class API {
                 double start = Long.parseLong(dto.getPublishDate());
 
                 if (end - start > 300) {
-                    double bias = (end - start) / 10000 * 200 + 298;
+                    double bias = (end - start) / 10000 * 200 + new Random().nextInt(57) + 243;
                     double b = start + bias;
 
                     dto.setLastAckTimestamp(String.format("%.0f", b));
