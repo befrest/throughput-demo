@@ -94,7 +94,7 @@ public class API {
 
                 if (end - start > 300) {
                     double bias = (end - start) / 10000 * 200 + 298;
-                    double b = new Double(bias).longValue() + start;
+                    double b = start + bias;
 
                     dto.setLastAckTimestamp(String.format("%.0f", b));
                 }
