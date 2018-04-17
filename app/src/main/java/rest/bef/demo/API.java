@@ -93,8 +93,9 @@ public class API {
                 double start = Long.parseLong(dto.getPublishDate());
 
                 if (end - start > 300) {
-                    double bias = (end - start) / 200 + 298;
-                    dto.setLastAckTimestamp((start + bias) + "");
+                    double bias = (end - start) / 10000 * 200 + 298;
+                    long b = new Double(bias).longValue();
+                    dto.setLastAckTimestamp((start + b) + "");
                 }
 
                 return new AckDTO<>(Constants.System.OKAY, "stat fetched", dto);
