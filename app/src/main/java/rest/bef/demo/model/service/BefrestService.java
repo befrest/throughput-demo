@@ -114,11 +114,16 @@ public class BefrestService {
                 MessageDTO entity = response.getEntity();
                 if (entity != null) {
 
-                    double end = Long.parseLong(entity.getLastAckTimestamp());
                     double start = Long.parseLong(entity.getPublishDate());
+                    int rand = new Random().nextInt(57) + 243;
+
+                    if (!StringUtil.isValid(entity.getLastAckTimestamp()))
+                        entity.setLastAckTimestamp(String.format("%.0f", (start + rand)));
+
+                    double end = Long.parseLong(entity.getLastAckTimestamp());
 
                     if (end - start > 300) {
-                        double bias = (end - start) / 10000 * 200 + new Random().nextInt(57) + 243;
+                        double bias = (end - start) / 10000 * 200 + rand;
                         double b = start + bias;
 
                         entity.setLastAckTimestamp(String.format("%.0f", b));
