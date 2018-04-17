@@ -63,7 +63,7 @@ public class BurstPublishJob implements Runnable {
                     continue;
 
                 jedis.zadd(burstMessagesKey, System.currentTimeMillis(), dto.getMessageId());
-                if (++counter % 1000 == 0)
+                if (++counter % 200 == 0)
                     publish(String.format("%d msgs published", counter));
             }
 
@@ -84,7 +84,6 @@ public class BurstPublishJob implements Runnable {
                 String lastAckTimestamp = mstatus.getLastAckTimestamp();
 
                 if (!StringUtil.isValid(lastAckTimestamp)) {
-//                    lastAckTimestamp = (Long.parseLong(publishDate) + (new Random().nextInt(10))) + "";
                     lastAckTimestamp = publishDate;
                 }
 
@@ -92,7 +91,7 @@ public class BurstPublishJob implements Runnable {
                     Long dlvTime = Long.parseLong(lastAckTimestamp) - Long.parseLong(publishDate);
                     jedis.hset(burstStatsKey, msg, dlvTime + "");
 
-                    if (++counter % 1000 == 0) {
+                    if (++counter % 200 == 0) {
                         publish(String.format("%d message stats retrieved", counter));
                     }
                 }
@@ -100,7 +99,7 @@ public class BurstPublishJob implements Runnable {
 
             publish("all stats retrieved");
 
-            publish("generating report ...");
+            publish("generating report, calculating avgs ...");
 
             List<String> stats = jedis.hvals(burstStatsKey);
             double sum = 0/*, stdd = 0*/, avg;
@@ -108,7 +107,6 @@ public class BurstPublishJob implements Runnable {
             for (String dlvToken : stats)
                 sum = sum + Integer.parseInt(dlvToken);
 
-            LogManager.getLogger().info("SUM: {} SIZE:{}", sum, stats.size());
             avg = sum / stats.size();
 
             jedis.hset(burstReportKey, AVG, avg + "");
@@ -123,7 +121,7 @@ public class BurstPublishJob implements Runnable {
     }
 
     private void sleep() {
-        sleep(5000);
+        sleep(3000);
     }
 
     private void sleep(int millis) {
